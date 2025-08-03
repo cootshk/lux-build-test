@@ -1,8 +1,11 @@
 #!/usr/bin/env zsh
+# need zsh for globbing to work properly
+
+setopt -exo pipefail
 
 LUA="luajit" # "lua", "lua-5.1", "luajit", etc
 LUX_LUA="jit" # "5.4", "5.1", "jit", etc
-export LUASTATIC="luastatic"
+LUASTATIC="luastatic_patched"
 
 echo Invoked in $(pwd)
 
@@ -10,14 +13,13 @@ cd "$(realpath $(dirname $0))"
 
 echo Running in $(pwd)
 
-lx build || exit 1
+lx build || exit 1 # script fails here when in the nix store
 
-LUASTATIC="luastatic_patched"
-cp .lux/$LUX_LUA/bin/unwrapped/luastatic .lux/$LUX_LUA/bin/unwrapped/luastatic_patched 
-cp .lux/$LUX_LUA/bin/luastatic .lux/$LUX_LUA/bin/luastatic_patched 
+cp .lux/$LUX_LUA/bin/unwrapped/luastatic .lux/$LUX_LUA/bin/unwrapped/$LUASTATIC
+cp .lux/$LUX_LUA/bin/luastatic .lux/$LUX_LUA/bin/$LUASTATIC
 
 # Point Lux to our new patched script
-sed -i "s/bin\/unwrapped\/luastatic/bin\/unwrapped\/luastatic_patched/g" .lux/$LUX_LUA/bin/luastatic_patched 
+sed -i "s/bin\/unwrapped\/luastatic/bin\/unwrapped\/$LUASTATIC/g" .lux/$LUX_LUA/bin/$LUASTATIC
 # Patch the script to move all references to `....lux.jit.src.main` to `main`
 sed -i "s/out(('	lua_setfield(L, -2, \"%s\");\n\n\'):format(file.dotpath_noextension))/\
 local location = file.dotpath_noextension \
@@ -44,7 +46,7 @@ lx exec $LUASTATIC -- \
 
 cd ..
 if [[ -z "$1" ]]; then
-    OUT_FILE=$(grep "^name = " lux.toml | cut -d'"' -f2)
+    OUT_FILE=$(grep "^package = " lux.toml | cut -d'"' -f2)
 else
     OUT_FILE="$1"
 fi
