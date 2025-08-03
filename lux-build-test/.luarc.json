@@ -1,5 +1,8 @@
 {
   "workspace": {
-    "library": []
+    "library": [
+      ".lux/jit/b5391c77572d8186079e80fb4d8582cf0fea6dcc64b08af3cc651d3eed8e8b35-luastatic@0.0.12-1",
+      ".lux/jit/d528cd52981564259b873ae3f972f48a19522d775240465725a6434109336b92-argparse@0.7.1-1"
+    ]
   }
 }
